@@ -8,8 +8,19 @@ import { toast } from "sonner";
 import { DEFAULT_KEYWORD } from "@/constants";
 import Image from "next/image";
 import { ExternalLinkIcon } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function MovieListView() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // data
   const keyword = DEFAULT_KEYWORD;
   const pageNumber = useRef(1);
@@ -35,31 +46,72 @@ export default function MovieListView() {
     handleToast();
   }, [error]);
 
+  // lightbox
+  const lightboxImage = searchParams.get("lightbox-image") ?? "";
+  const toggle = Boolean(lightboxImage);
+
+  const handleOpenLightbox = (value: string) => {
+    router.push(`?lightbox-image=${encodeURI(value)}`);
+  };
+
+  const handleToggleLightbox = (open: boolean) => {
+    if (!open) {
+      router.back();
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4">
+    <>
       <div className="flex flex-col gap-6">
         <Link href={`/search?s=${keyword}`} className="flex items-center gap-2">
           <p className="text-xl font-semibold capitalize">{keyword}</p>
           <ExternalLinkIcon className="size-4" />
         </Link>
         <Activity mode={loading ? "hidden" : "visible"}>
-          <ul className="grid grid-cols-5 gap-4">
+          <ul className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {data.movies.map((item, index) => (
-              <li key={`${item.imdbID}-${index}`}>
-                <Link href={`/${toKebabCase(item.Title)}-${item.imdbID}`}>
-                  <Image
-                    src={item.Poster}
-                    alt={item.Title}
-                    width={300}
-                    height={445}
-                    className="aspect-2/3 overflow-hidden"
-                  />
+              <li
+                key={`${item.imdbID}-${index}`}
+                className="flex flex-col gap-2"
+              >
+                <Image
+                  src={item.Poster}
+                  alt={item.Title}
+                  width={300}
+                  height={445}
+                  className="aspect-2/3 overflow-hidden w-full h-full object-cover cursor-pointer"
+                  onClick={() => handleOpenLightbox(item.Poster)}
+                />
+                <Link
+                  href={`/${toKebabCase(item.Title)}-${item.imdbID}`}
+                  className="font-semibold truncate"
+                >
+                  {item.Title}
                 </Link>
               </li>
             ))}
           </ul>
         </Activity>
       </div>
-    </div>
+      <Dialog open={toggle} onOpenChange={(open) => handleToggleLightbox(open)}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{lightboxImage}</DialogTitle>
+            <DialogDescription>{lightboxImage}</DialogDescription>
+          </DialogHeader>
+          {lightboxImage && (
+            <div className="rounded-2xl bg-gray-200 overflow-hidden">
+              <Image
+                src={lightboxImage}
+                alt={lightboxImage}
+                width={2000}
+                height={3000}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
