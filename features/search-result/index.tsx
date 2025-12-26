@@ -14,6 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LoaderCircleIcon } from "lucide-react";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 
 export default function SearchResultView() {
   const router = useRouter();
@@ -22,6 +24,7 @@ export default function SearchResultView() {
   // data
   const keyword = searchParams.get("s") ?? "";
   const pageNumber = useRef(1);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const { getMovies, data, loading, error, errorMessage } = useGetMovies();
 
@@ -32,6 +35,16 @@ export default function SearchResultView() {
   useEffect(() => {
     handleGetMovies();
   }, []);
+
+  const handleLoadMore = () => {
+    pageNumber.current++;
+    getMovies(keyword, pageNumber.current);
+  };
+
+  useIntersectionObserver({
+    target: loadMoreRef,
+    onIntersect: () => handleLoadMore(),
+  });
 
   // error
   const handleToast = useEffectEvent(() => {
@@ -67,7 +80,7 @@ export default function SearchResultView() {
             {keyword}
           </span>
         </p>
-        <Activity mode={loading ? "hidden" : "visible"}>
+        <div className="flex flex-col gap-6">
           <ul className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {data.movies.map((item, index) => (
               <li
@@ -79,6 +92,7 @@ export default function SearchResultView() {
                   alt={item.Title}
                   width={300}
                   height={445}
+                  unoptimized
                   className="aspect-2/3 overflow-hidden w-full h-full object-cover cursor-pointer"
                   onClick={() => handleOpenLightbox(item.Poster)}
                 />
@@ -91,7 +105,12 @@ export default function SearchResultView() {
               </li>
             ))}
           </ul>
-        </Activity>
+          <Activity mode={!loading && data.hasNextPage ? "visible" : "hidden"}>
+            <div ref={loadMoreRef} className="flex items-center justify-center">
+              <LoaderCircleIcon className="size-6 animate-spin" />
+            </div>
+          </Activity>
+        </div>
       </div>
       <Dialog open={toggle} onOpenChange={(open) => handleToggleLightbox(open)}>
         <DialogContent className="rounded-2xl">

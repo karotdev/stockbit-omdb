@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 const useGetMovies = () => {
   const [data, setData] = useState<MovieItem[]>([]);
+  const [totalResults, setTotalResults] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -21,39 +22,53 @@ const useGetMovies = () => {
       const safeData = OMDbSearchSchema.safeParse(response);
 
       if (!safeData.success) {
-        setError(true);
-        setErrorMessage("Invalid response from server");
-        setData([]);
+        if (page === 1) {
+          setError(true);
+          setErrorMessage("Invalid response from server");
+          setData([]);
+          setTotalResults(0);
+        }
         return;
       }
 
       if (safeData.data.Response === "False") {
-        setError(true);
-        setErrorMessage(safeData.data.Error);
-        setData([]);
+        if (page === 1) {
+          setError(true);
+          setErrorMessage(safeData.data.Error);
+          setData([]);
+          setTotalResults(0);
+        }
         return;
       }
 
+      const searchResponse = safeData.data as OMDbSearchResponse;
+      setTotalResults(Number(searchResponse.totalResults));
+
       setData((prev) =>
-        page === 1
-          ? (safeData.data as OMDbSearchResponse).Search
-          : [...prev, ...(safeData.data as OMDbSearchResponse).Search]
+        page === 1 ? searchResponse.Search : [...prev, ...searchResponse.Search]
       );
     } catch (err) {
       console.error(err);
-      setError(true);
-      setErrorMessage("Network error. Please try again.");
-      setData([]);
+      if (page === 1) {
+        setError(true);
+        setErrorMessage("Network error. Please try again.");
+        setData([]);
+        setTotalResults(0);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const posters = useMemo(() => data.map((movie) => movie.Poster), [data]);
+  const hasNextPage = useMemo(
+    () => data.length < totalResults,
+    [data.length, totalResults]
+  );
 
   return {
     getMovies,
-    data: { movies: data, posters },
+    data: { movies: data, posters, hasNextPage },
     loading,
     error,
     errorMessage,
