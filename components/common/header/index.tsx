@@ -11,13 +11,14 @@ import { Activity, useEffect, useEffectEvent, useRef, useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import useGetMoviesSuggestion from "./repo/use-get-movie-suggestion";
 import { MIN_KEYWORD_LENGTH } from "@/constants";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { setKeyword, clearKeyword } from "@/redux/slices/search-slice";
 import type { RootState } from "@/redux/store";
 
 export default function Header() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useDispatch();
 
   const [isShowSuggestions, setIsShowSuggestions] = useState(false);
@@ -28,6 +29,18 @@ export default function Header() {
   // data
   const keyword = useSelector((state: RootState) => state.search.keyword);
   const pageNumber = useRef(1);
+
+  const urlKeyword = searchParams.get("s") ?? "";
+
+  const handleSyncKeyword = useEffectEvent(() => {
+    if (urlKeyword && urlKeyword !== keyword) {
+      dispatch(setKeyword(urlKeyword));
+    }
+  });
+
+  useEffect(() => {
+    handleSyncKeyword();
+  }, []);
 
   const { getMovieSuggestion, data, loading, error, errorMessage } =
     useGetMoviesSuggestion();

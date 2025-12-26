@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/dialog";
 import { LoaderCircleIcon } from "lucide-react";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
+import { setKeyword } from "@/redux/slices/search-slice";
 
 export default function SearchResultView() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const dispatch = useDispatch();
 
   // data
   const keyword = useSelector((state: RootState) => state.search.keyword);
@@ -30,8 +32,21 @@ export default function SearchResultView() {
 
   const { getMovies, data, loading, error, errorMessage } = useGetMovies();
 
+  const urlKeyword = searchParams.get("s") ?? "";
+
+  const handleSyncKeyword = useEffectEvent(() => {
+    if (urlKeyword && urlKeyword !== keyword) {
+      dispatch(setKeyword(urlKeyword));
+    }
+  });
+
+  useEffect(() => {
+    handleSyncKeyword();
+  }, []);
+
   const handleGetMovies = useEffectEvent(() => {
-    getMovies(keyword, pageNumber.current);
+    const searchKeyword = urlKeyword || keyword;
+    getMovies(searchKeyword, pageNumber.current);
   });
 
   useEffect(() => {
