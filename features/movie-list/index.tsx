@@ -7,7 +7,6 @@ import { toKebabCase } from "@/utils/to-kebab-case";
 import { toast } from "sonner";
 import { DEFAULT_KEYWORD } from "@/constants";
 import Image from "next/image";
-import { ExternalLinkIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dialog,
@@ -63,10 +62,7 @@ export default function MovieListView() {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <Link href={`/search?s=${keyword}`} className="flex items-center gap-2">
-          <p className="text-xl font-semibold capitalize">{keyword}</p>
-          <ExternalLinkIcon className="size-4" />
-        </Link>
+        <p className="text-xl font-semibold capitalize">{keyword}</p>
         <Activity mode={loading ? "hidden" : "visible"}>
           <ul className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {data.movies.map((item, index) => (

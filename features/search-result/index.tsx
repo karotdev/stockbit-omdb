@@ -16,13 +16,15 @@ import {
 } from "@/components/ui/dialog";
 import { LoaderCircleIcon } from "lucide-react";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
 
 export default function SearchResultView() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // data
-  const keyword = searchParams.get("s") ?? "";
+  const keyword = useSelector((state: RootState) => state.search.keyword);
   const pageNumber = useRef(1);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
