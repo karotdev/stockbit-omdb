@@ -1,25 +1,27 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef } from "react";
+import { Activity, useEffect, useEffectEvent, useRef } from "react";
 import useGetMovies from "./repo/use-get-movies";
 import Link from "next/link";
 import { toKebabCase } from "@/utils/to-kebab-case";
 import { toast } from "sonner";
 import { DEFAULT_KEYWORD } from "@/constants";
 import Image from "next/image";
+import { ExternalLinkIcon } from "lucide-react";
 
 export default function MovieListView() {
+  // data
+  const keyword = DEFAULT_KEYWORD;
   const pageNumber = useRef(1);
 
-  // data
   const { getMovies, data, loading, error, errorMessage } = useGetMovies();
 
-  const handleGetMovieById = useEffectEvent(() => {
-    getMovies(DEFAULT_KEYWORD, pageNumber.current);
+  const handleGetMovies = useEffectEvent(() => {
+    getMovies(keyword, pageNumber.current);
   });
 
   useEffect(() => {
-    handleGetMovieById();
+    handleGetMovies();
   }, []);
 
   // error
@@ -33,25 +35,31 @@ export default function MovieListView() {
     handleToast();
   }, [error]);
 
-  console.log({ data, loading });
-
   return (
     <div className="container mx-auto p-4">
-      <ul className="grid grid-cols-5 gap-4">
-        {data.movies.map((item, index) => (
-          <li key={`${item.imdbID}-${index}`}>
-            <Link href={`/${toKebabCase(item.Title)}-${item.imdbID}`}>
-              <Image
-                src={item.Poster}
-                alt={item.Title}
-                width={300}
-                height={445}
-                className="aspect-2/3 overflow-hidden"
-              />
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col gap-6">
+        <Link href={`/search?s=${keyword}`} className="flex items-center gap-2">
+          <p className="text-xl font-semibold capitalize">{keyword}</p>
+          <ExternalLinkIcon className="size-4" />
+        </Link>
+        <Activity mode={loading ? "hidden" : "visible"}>
+          <ul className="grid grid-cols-5 gap-4">
+            {data.movies.map((item, index) => (
+              <li key={`${item.imdbID}-${index}`}>
+                <Link href={`/${toKebabCase(item.Title)}-${item.imdbID}`}>
+                  <Image
+                    src={item.Poster}
+                    alt={item.Title}
+                    width={300}
+                    height={445}
+                    className="aspect-2/3 overflow-hidden"
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Activity>
+      </div>
     </div>
   );
 }

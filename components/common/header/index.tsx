@@ -16,15 +16,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 export default function Header() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const s = searchParams.get("s") ?? "";
 
-  const [keyword, setKeyword] = useState(s);
   const [isShowSuggestions, setIsShowSuggestions] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // data
+  const [keyword, setKeyword] = useState(searchParams.get("s") ?? "");
+  const pageNumber = useRef(1);
+
   const { getMovieSuggestion, data, loading, error, errorMessage } =
     useGetMoviesSuggestion();
 
@@ -35,7 +36,7 @@ export default function Header() {
         setIsShowSuggestions(false);
         return;
       }
-      getMovieSuggestion(keyword, 1);
+      getMovieSuggestion(keyword, pageNumber.current);
       setIsShowSuggestions(true);
     },
     500
