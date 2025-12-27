@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/common/header";
-import { ViewTransition } from "react";
+import { Suspense, ViewTransition } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { ReduxProvider } from "@/redux/provider";
 
@@ -31,15 +31,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ReduxProvider>
-          <Toaster />
-          <div className="flex flex-col md:gap-6">
-            <Header />
-            <ViewTransition>
-              <div className="container mx-auto p-4 md:py-10">{children}</div>
-            </ViewTransition>
-          </div>
-        </ReduxProvider>
+        <Suspense>
+          <ReduxProvider>
+            <Toaster />
+            <div className="flex flex-col md:gap-6">
+              <Header />
+              <ViewTransition>
+                <div className="container mx-auto p-4 md:py-10">{children}</div>
+              </ViewTransition>
+            </div>
+          </ReduxProvider>
+        </Suspense>
       </body>
     </html>
   );
